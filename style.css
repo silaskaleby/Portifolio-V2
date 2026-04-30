@@ -237,7 +237,7 @@
     .hero-bg {
       position: absolute;
       inset: 0;
-      background-image: url('../assets/images/hero.png');
+      background-image: url('hero.png');
       background-size: contain;
       background-position: right center;
       background-repeat: no-repeat;
@@ -1107,7 +1107,7 @@
       .contato-bg-img {
         position: absolute;
         inset: 0;
-      background-image: url('../assets/images/contato.jpeg');
+      background-image: url('contato.jpeg');
       background-size: cover;
       background-position: center center;
         background-repeat: no-repeat;
