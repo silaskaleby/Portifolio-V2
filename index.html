@@ -11,7 +11,9 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" referrerpolicy="no-referrer" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -148,77 +150,130 @@
     </div>
 
     <div class="projetos-grid">
-      <div class="projeto-card reveal" style="transition-delay: 0.1s">
+      <article class="projeto-card reveal" style="transition-delay: 0.1s" aria-labelledby="projeto-sk-clock">
         <div class="projeto-top">
-          <div class="projeto-icon">⚙️</div>
-          <span class="projeto-arrow">↗</span>
+          <div class="projeto-icon" aria-hidden="true"><i class="fa-regular fa-clock"></i></div>
+          <span class="projeto-status"><span class="status-dot"></span>Online</span>
         </div>
-        <div class="projeto-numero">01 / PROJETO</div>
-        <h3>MyFirstC</h3>
+        <div class="projeto-meta">
+          <span class="projeto-numero">01 / PROJETO</span>
+          <span class="projeto-category">Educação</span>
+        </div>
+        <h3 id="projeto-sk-clock">SK Clock</h3>
         <p>
-          Repositório com exercícios e estudos iniciais em linguagem C,
-          focado em lógica de programação e fundamentos. O ponto de partida
-          da minha jornada no desenvolvimento.
+          Relógio interativo para praticar horas em inglês com foco em aprendizado,
+          clareza visual e uma experiência simples de usar.
         </p>
-        <div class="projeto-footer">
-          <div class="projeto-tags">
-            <span class="tag">C</span>
-            <span class="tag">Lógica</span>
-            <span class="tag">Fundamentos</span>
-          </div>
-          <a href="https://github.com/silaskaleby/myFirstC" target="_blank" class="btn-ver-codigo">
-            &lt;/&gt; Ver Código
+        <ul class="projeto-tags" aria-label="Tecnologias e áreas do projeto">
+          <li class="tag"><i class="fa-brands fa-js" aria-hidden="true"></i>JavaScript</li>
+          <li class="tag"><i class="fa-solid fa-layer-group" aria-hidden="true"></i>UI</li>
+          <li class="tag"><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i>Educação</li>
+        </ul>
+        <div class="projeto-actions">
+          <a href="https://sk-clock.vercel.app/" target="_blank" rel="noopener noreferrer" class="btn-projeto btn-projeto-primary" aria-label="Ver projeto SK Clock online">
+            <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+            Ver Projeto
+          </a>
+          <a href="https://github.com/silaskaleby/sk--clock" target="_blank" rel="noopener noreferrer" class="btn-projeto btn-projeto-secondary" aria-label="Ver código do projeto SK Clock no GitHub">
+            <i class="fa-brands fa-github" aria-hidden="true"></i>
+            Ver Código
           </a>
         </div>
-      </div>
+      </article>
 
-      <div class="projeto-card reveal" style="transition-delay: 0.2s">
+      <article class="projeto-card reveal" style="transition-delay: 0.2s" aria-labelledby="projeto-damas">
         <div class="projeto-top">
-          <div class="projeto-icon">🐍</div>
-          <span class="projeto-arrow">↗</span>
+          <div class="projeto-icon" aria-hidden="true"><i class="fa-solid fa-chess-board"></i></div>
+          <span class="projeto-status"><span class="status-dot"></span>Online</span>
         </div>
-        <div class="projeto-numero">02 / PROJETO</div>
-        <h3>Curso em Vídeo Python</h3>
+        <div class="projeto-meta">
+          <span class="projeto-numero">02 / PROJETO</span>
+          <span class="projeto-category">Jogo</span>
+        </div>
+        <h3 id="projeto-damas">Jogo de Damas</h3>
         <p>
-          Coleção de exercícios do curso de Python (1 a 100), com foco em
-          prática e evolução constante na linguagem. Exercícios progressivos
-          que cobrem desde o básico até conceitos mais avançados.
+          Jogo de damas desenvolvido com foco em lógica, tomada de decisão e
+          experiência de usuário em uma interface objetiva.
         </p>
-        <div class="projeto-footer">
-          <div class="projeto-tags">
-            <span class="tag">Python</span>
-            <span class="tag">Exercícios</span>
-            <span class="tag">Lógica</span>
-          </div>
-          <a href="https://github.com/silaskaleby/cursoemvideo1a100ATV" target="_blank" class="btn-ver-codigo">
-            &lt;/&gt; Ver Código
+        <ul class="projeto-tags" aria-label="Tecnologias e áreas do projeto">
+          <li class="tag"><i class="fa-brands fa-js" aria-hidden="true"></i>JavaScript</li>
+          <li class="tag"><i class="fa-solid fa-brain" aria-hidden="true"></i>IA</li>
+          <li class="tag"><i class="fa-solid fa-diagram-project" aria-hidden="true"></i>Lógica</li>
+        </ul>
+        <div class="projeto-actions">
+          <a href="https://jogo-damas-topaz.vercel.app/" target="_blank" rel="noopener noreferrer" class="btn-projeto btn-projeto-primary" aria-label="Ver projeto Jogo de Damas online">
+            <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+            Ver Projeto
+          </a>
+          <a href="https://github.com/silaskaleby/jogo-damas" target="_blank" rel="noopener noreferrer" class="btn-projeto btn-projeto-secondary" aria-label="Ver código do projeto Jogo de Damas no GitHub">
+            <i class="fa-brands fa-github" aria-hidden="true"></i>
+            Ver Código
           </a>
         </div>
-      </div>
+      </article>
 
-      <div class="projeto-card reveal" style="transition-delay: 0.3s">
+      <article class="projeto-card reveal" style="transition-delay: 0.3s" aria-labelledby="projeto-landing-page">
         <div class="projeto-top">
-          <div class="projeto-icon">🎨</div>
-          <span class="projeto-arrow">↗</span>
+          <div class="projeto-icon" aria-hidden="true"><i class="fa-solid fa-globe"></i></div>
+          <span class="projeto-status"><span class="status-dot"></span>Online</span>
         </div>
-        <div class="projeto-numero">03 / PROJETO</div>
-        <h3>Mini Site CSS</h3>
+        <div class="projeto-meta">
+          <span class="projeto-numero">03 / PROJETO</span>
+          <span class="projeto-category">Cliente real</span>
+        </div>
+        <h3 id="projeto-landing-page">Landing Page Profissional</h3>
         <p>
-          Projeto simples de front-end utilizando HTML e CSS, focado em
-          layout e estilização. Um experimento prático de construção de
-          interfaces responsivas do zero.
+          Landing page criada para cliente real, com foco em apresentação
+          profissional, leitura rápida e conversão.
         </p>
-        <div class="projeto-footer">
-          <div class="projeto-tags">
-            <span class="tag">HTML</span>
-            <span class="tag">CSS</span>
-            <span class="tag">Front-end</span>
-          </div>
-          <a href="https://github.com/silaskaleby/teste1-css" target="_blank" class="btn-ver-codigo">
-            &lt;/&gt; Ver Código
+        <ul class="projeto-tags" aria-label="Tecnologias e áreas do projeto">
+          <li class="tag"><i class="fa-brands fa-html5" aria-hidden="true"></i>HTML5</li>
+          <li class="tag"><i class="fa-brands fa-css3-alt" aria-hidden="true"></i>CSS3</li>
+          <li class="tag"><i class="fa-solid fa-briefcase" aria-hidden="true"></i>Projeto Real</li>
+        </ul>
+        <div class="projeto-actions">
+          <a href="https://landing-page-gaby.vercel.app/" target="_blank" rel="noopener noreferrer" class="btn-projeto btn-projeto-primary" aria-label="Ver Landing Page Profissional online">
+            <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+            Ver Projeto
+          </a>
+          <a href="https://github.com/silaskaleby/landing-page-gb" target="_blank" rel="noopener noreferrer" class="btn-projeto btn-projeto-secondary" aria-label="Ver código da Landing Page Profissional no GitHub">
+            <i class="fa-brands fa-github" aria-hidden="true"></i>
+            Ver Código
           </a>
         </div>
-      </div>
+      </article>
+
+      <article class="projeto-card reveal" style="transition-delay: 0.4s" aria-labelledby="projeto-bot-telegram">
+        <div class="projeto-top">
+          <div class="projeto-icon" aria-hidden="true"><i class="fa-brands fa-telegram"></i></div>
+          <span class="projeto-status"><span class="status-dot"></span>Online</span>
+        </div>
+        <div class="projeto-meta">
+          <span class="projeto-numero">04 / PROJETO</span>
+          <span class="projeto-category">Automação</span>
+        </div>
+        <h3 id="projeto-bot-telegram">Bot Telegram</h3>
+        <p>
+          Bot em Python para automação no Telegram, integração de APIs e
+          produtividade, com partes internas protegidas por segurança.
+        </p>
+        <ul class="projeto-tags" aria-label="Tecnologias e áreas do projeto">
+          <li class="tag"><i class="fa-brands fa-python" aria-hidden="true"></i>Python</li>
+          <li class="tag"><i class="fa-solid fa-robot" aria-hidden="true"></i>Bot</li>
+          <li class="tag"><i class="fa-solid fa-plug" aria-hidden="true"></i>API</li>
+          <li class="tag"><i class="fa-brands fa-telegram" aria-hidden="true"></i>Telegram</li>
+        </ul>
+        <div class="projeto-actions">
+          <a href="https://t.me/WorldTempoBot" target="_blank" rel="noopener noreferrer" class="btn-projeto btn-projeto-primary" aria-label="Ver demonstração do Bot Telegram">
+            <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+            Ver Projeto
+          </a>
+          <a href="https://github.com/silaskaleby/world-tempo-bot" target="_blank" rel="noopener noreferrer" class="btn-projeto btn-projeto-secondary" aria-label="Ver código do Bot Telegram no GitHub">
+            <i class="fa-brands fa-github" aria-hidden="true"></i>
+            Ver Código
+          </a>
+        </div>
+      </article>
     </div>
   </section>
 
