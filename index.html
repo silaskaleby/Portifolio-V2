@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" referrerpolicy="no-referrer" />
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css?v=2" />
 </head>
 <body>
 
@@ -39,19 +39,19 @@
       <li><a href="#habilidades">Skills</a></li>
       <li><a href="#contato">Contato</a></li>
     </ul>
-    <a href="#contato" class="nav-cta" onclick="scrollToContact(event)">Contratar</a>
-    <button class="hamburger" id="hamburger" aria-label="Menu">
+    <a href="#contato" class="nav-cta">Contratar</a>
+    <button class="hamburger" id="hamburger" aria-label="Menu" aria-controls="mobile-menu" aria-expanded="false">
       <span></span><span></span><span></span>
     </button>
   </nav>
 
   <!-- Menu mobile -->
   <div class="mobile-menu" id="mobile-menu">
-    <a href="#sobre" onclick="closeMobile()">Sobre</a>
-    <a href="#projetos" onclick="closeMobile()">Projetos</a>
-    <a href="#habilidades" onclick="closeMobile()">Skills</a>
-    <a href="#contato" onclick="closeMobile()">Contato</a>
-    <a href="#contato" class="mob-cta" onclick="closeMobile(); scrollToContact(event)">Contratar</a>
+    <a href="#sobre">Sobre</a>
+    <a href="#projetos">Projetos</a>
+    <a href="#habilidades">Skills</a>
+    <a href="#contato">Contato</a>
+    <a href="#contato" class="mob-cta">Contratar</a>
   </div>
 
   <!-- =============================================
@@ -76,8 +76,8 @@
         construindo soluções reais, um commit de cada vez.
       </p>
       <div class="hero-actions">
-        <a href="#projetos" class="btn-primary" onclick="scrollToProjects(event)">Ver Projetos →</a>
-        <a href="#contato" class="btn-secondary" onclick="scrollToContact(event)">💬 Entrar em Contato</a>
+        <a href="#projetos" class="btn-primary">Ver Projetos →</a>
+        <a href="#contato" class="btn-secondary">💬 Entrar em Contato</a>
         <a href="https://github.com/silaskaleby" target="_blank" class="btn-secondary">🔗 Ver GitHub</a>
         <a href="curriculo-Silas-Kaleby-Alexandre-Sobrinho.pdf" target="_blank" class="btn-secondary">📄 Currículo</a>
       </div>
@@ -152,7 +152,7 @@
     <div class="projetos-grid">
       <article class="projeto-card reveal" style="transition-delay: 0.1s" aria-labelledby="projeto-sk-clock">
         <div class="projeto-top">
-          <div class="projeto-icon" aria-hidden="true"><i class="fa-regular fa-clock"></i></div>
+          <div class="projeto-icon projeto-icon-clock" aria-hidden="true"><i class="fa-solid fa-stopwatch"></i></div>
           <span class="projeto-status"><span class="status-dot"></span>Online</span>
         </div>
         <div class="projeto-meta">
@@ -165,7 +165,7 @@
           clareza visual e uma experiência simples de usar.
         </p>
         <ul class="projeto-tags" aria-label="Tecnologias e áreas do projeto">
-          <li class="tag"><i class="fa-brands fa-js" aria-hidden="true"></i>JavaScript</li>
+          <li class="tag"><img class="tag-icon" src="https://cdn.jsdelivr.net/gh/devicons/devicon@v2.17.0/icons/javascript/javascript-original.svg" alt="">JavaScript</li>
           <li class="tag"><i class="fa-solid fa-layer-group" aria-hidden="true"></i>UI</li>
           <li class="tag"><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i>Educação</li>
         </ul>
@@ -183,7 +183,7 @@
 
       <article class="projeto-card reveal" style="transition-delay: 0.2s" aria-labelledby="projeto-damas">
         <div class="projeto-top">
-          <div class="projeto-icon" aria-hidden="true"><i class="fa-solid fa-chess-board"></i></div>
+          <div class="projeto-icon projeto-icon-strategy" aria-hidden="true"><i class="fa-solid fa-chess-board"></i></div>
           <span class="projeto-status"><span class="status-dot"></span>Online</span>
         </div>
         <div class="projeto-meta">
@@ -196,7 +196,7 @@
           experiência de usuário em uma interface objetiva.
         </p>
         <ul class="projeto-tags" aria-label="Tecnologias e áreas do projeto">
-          <li class="tag"><i class="fa-brands fa-js" aria-hidden="true"></i>JavaScript</li>
+          <li class="tag"><img class="tag-icon" src="https://cdn.jsdelivr.net/gh/devicons/devicon@v2.17.0/icons/javascript/javascript-original.svg" alt="">JavaScript</li>
           <li class="tag"><i class="fa-solid fa-brain" aria-hidden="true"></i>IA</li>
           <li class="tag"><i class="fa-solid fa-diagram-project" aria-hidden="true"></i>Lógica</li>
         </ul>
@@ -214,7 +214,7 @@
 
       <article class="projeto-card reveal" style="transition-delay: 0.3s" aria-labelledby="projeto-landing-page">
         <div class="projeto-top">
-          <div class="projeto-icon" aria-hidden="true"><i class="fa-solid fa-globe"></i></div>
+          <div class="projeto-icon projeto-icon-web" aria-hidden="true"><i class="fa-solid fa-window-maximize"></i></div>
           <span class="projeto-status"><span class="status-dot"></span>Online</span>
         </div>
         <div class="projeto-meta">
@@ -227,8 +227,8 @@
           profissional, leitura rápida e conversão.
         </p>
         <ul class="projeto-tags" aria-label="Tecnologias e áreas do projeto">
-          <li class="tag"><i class="fa-brands fa-html5" aria-hidden="true"></i>HTML5</li>
-          <li class="tag"><i class="fa-brands fa-css3-alt" aria-hidden="true"></i>CSS3</li>
+          <li class="tag"><img class="tag-icon" src="https://cdn.jsdelivr.net/gh/devicons/devicon@v2.17.0/icons/html5/html5-original.svg" alt="">HTML5</li>
+          <li class="tag"><img class="tag-icon" src="https://cdn.jsdelivr.net/gh/devicons/devicon@v2.17.0/icons/css3/css3-original.svg" alt="">CSS3</li>
           <li class="tag"><i class="fa-solid fa-briefcase" aria-hidden="true"></i>Projeto Real</li>
         </ul>
         <div class="projeto-actions">
@@ -245,7 +245,7 @@
 
       <article class="projeto-card reveal" style="transition-delay: 0.4s" aria-labelledby="projeto-bot-telegram">
         <div class="projeto-top">
-          <div class="projeto-icon" aria-hidden="true"><i class="fa-brands fa-telegram"></i></div>
+          <div class="projeto-icon projeto-icon-telegram" aria-hidden="true"><i class="fa-brands fa-telegram"></i></div>
           <span class="projeto-status"><span class="status-dot"></span>Online</span>
         </div>
         <div class="projeto-meta">
@@ -258,10 +258,10 @@
           produtividade, com partes internas protegidas por segurança.
         </p>
         <ul class="projeto-tags" aria-label="Tecnologias e áreas do projeto">
-          <li class="tag"><i class="fa-brands fa-python" aria-hidden="true"></i>Python</li>
+          <li class="tag"><img class="tag-icon" src="https://cdn.jsdelivr.net/gh/devicons/devicon@v2.17.0/icons/python/python-original.svg" alt="">Python</li>
           <li class="tag"><i class="fa-solid fa-robot" aria-hidden="true"></i>Bot</li>
           <li class="tag"><i class="fa-solid fa-plug" aria-hidden="true"></i>API</li>
-          <li class="tag"><i class="fa-brands fa-telegram" aria-hidden="true"></i>Telegram</li>
+          <li class="tag"><i class="fa-brands fa-telegram tag-icon-telegram" aria-hidden="true"></i>Telegram</li>
         </ul>
         <div class="projeto-actions">
           <a href="https://t.me/WorldTempoBot" target="_blank" rel="noopener noreferrer" class="btn-projeto btn-projeto-primary" aria-label="Ver demonstração do Bot Telegram">
@@ -288,34 +288,37 @@
 
     <div class="skills-grid">
       <div class="skill-card reveal" style="transition-delay: 0.05s">
-        <span class="skill-icon">🟨</span>
+        <span class="skill-icon" aria-hidden="true"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@v2.17.0/icons/javascript/javascript-original.svg" alt=""></span>
         <div class="skill-name">JavaScript</div>
         <div class="skill-level">interatividade web</div>
       </div>
       <div class="skill-card reveal" style="transition-delay: 0.1s">
-        <span class="skill-icon">🐍</span>
+        <span class="skill-icon" aria-hidden="true"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@v2.17.0/icons/python/python-original.svg" alt=""></span>
         <div class="skill-name">Python</div>
         <div class="skill-level">automação e estudos</div>
       </div>
       <div class="skill-card reveal" style="transition-delay: 0.15s">
-        <span class="skill-icon">⚙️</span>
+        <span class="skill-icon" aria-hidden="true"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@v2.17.0/icons/c/c-original.svg" alt=""></span>
         <div class="skill-name">C</div>
         <div class="skill-level">lógica e fundamentos</div>
       </div>
       <div class="skill-card reveal" style="transition-delay: 0.2s">
-        <span class="skill-icon">🌐</span>
+        <span class="skill-icon skill-icon-pair" aria-hidden="true">
+          <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@v2.17.0/icons/html5/html5-original.svg" alt="">
+          <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@v2.17.0/icons/css3/css3-original.svg" alt="">
+        </span>
         <div class="skill-name">HTML/CSS</div>
         <div class="skill-level">interfaces responsivas</div>
       </div>
       <div class="skill-card reveal" style="transition-delay: 0.3s">
-        <span class="skill-icon">🔀</span>
+        <span class="skill-icon" aria-hidden="true"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@v2.17.0/icons/git/git-original.svg" alt=""></span>
         <div class="skill-name">Git</div>
         <div class="skill-level">versionamento</div>
       </div>
       <div class="skill-card reveal" style="transition-delay: 0.35s">
-        <span class="skill-icon">🗄️</span>
-        <div class="skill-name">SQL</div>
-        <div class="skill-level">bancos de dados básicos</div>
+        <span class="skill-icon" aria-hidden="true"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@v2.17.0/icons/postgresql/postgresql-original.svg" alt=""></span>
+        <div class="skill-name">PostgreSQL</div>
+        <div class="skill-level">banco de dados relacional avançado</div>
       </div>
     </div>
 
@@ -331,30 +334,30 @@
       <div class="progress-item">
         <div class="progress-header">
           <span class="progress-name">Python</span>
-          <span class="progress-pct">65%</span>
+          <span class="progress-pct">80%</span>
         </div>
-        <div class="progress-bar"><div class="progress-fill" data-width="65"></div></div>
+        <div class="progress-bar"><div class="progress-fill" data-width="80"></div></div>
       </div>
       <div class="progress-item">
         <div class="progress-header">
           <span class="progress-name">JavaScript</span>
-          <span class="progress-pct">55%</span>
+          <span class="progress-pct">70%</span>
         </div>
-        <div class="progress-bar"><div class="progress-fill" data-width="55"></div></div>
+        <div class="progress-bar"><div class="progress-fill" data-width="70"></div></div>
       </div>
       <div class="progress-item">
         <div class="progress-header">
           <span class="progress-name">C</span>
-          <span class="progress-pct">50%</span>
+          <span class="progress-pct">70%</span>
         </div>
-        <div class="progress-bar"><div class="progress-fill" data-width="50"></div></div>
+        <div class="progress-bar"><div class="progress-fill" data-width="70"></div></div>
       </div>
       <div class="progress-item">
         <div class="progress-header">
           <span class="progress-name">Git</span>
-          <span class="progress-pct">60%</span>
+          <span class="progress-pct">98%</span>
         </div>
-        <div class="progress-bar"><div class="progress-fill" data-width="60"></div></div>
+        <div class="progress-bar"><div class="progress-fill" data-width="98"></div></div>
       </div>
     </div>
   </section>
@@ -457,7 +460,7 @@
   ============================================= -->
   <footer>
     <div class="footer-copy">
-      © 2026 <span>Silas Kaleby</span> — Feito com ❤️ em Caucaia, CE.
+      © 2026 <span>Silas Kaleby</span> — Todos os direitos reservados.
     </div>
     <div class="footer-links">
       <a href="#hero">Início</a>
@@ -469,6 +472,6 @@
   <!-- =============================================
        JAVASCRIPT
   ============================================= -->
-  <script src="script.js"></script>
+  <script src="script.js?v=3"></script>
 </body>
 </html>

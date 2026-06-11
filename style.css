@@ -22,7 +22,7 @@
       --shadow-red: 0 4px 32px rgba(235, 0, 11, 0.3);
     }
 
-    html { scroll-behavior: smooth; font-size: 16px; }
+    html { scroll-behavior: smooth; scroll-padding-top: 86px; font-size: 16px; }
 
     body {
       background: var(--black);
@@ -57,6 +57,7 @@
       align-items: center;
       justify-content: space-between;
       padding: 1.25rem 5%;
+      padding-inline: max(5%, calc(50vw - 800px));
       transition: var(--transition);
     }
     nav.scrolled {
@@ -64,6 +65,7 @@
       backdrop-filter: blur(14px);
       border-bottom: 1px solid rgba(235,0,11,0.12);
       padding: 0.85rem 5%;
+      padding-inline: max(5%, calc(50vw - 800px));
     }
 
     /* Logo SK */
@@ -141,7 +143,11 @@
       flex-direction: column;
       gap: 5px;
       cursor: pointer;
-      padding: 4px;
+      width: 44px;
+      height: 44px;
+      padding: 10px;
+      align-items: center;
+      justify-content: center;
       background: none;
       border: none;
     }
@@ -158,6 +164,7 @@
 
     /* Mobile nav */
     .mobile-menu {
+      --mobile-panel-width: min(88vw, 380px);
       display: none;
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -171,7 +178,7 @@
       opacity: 0;
       pointer-events: none;
       overflow: hidden;
-      padding-left: 50vw;
+      padding-left: calc(100vw - var(--mobile-panel-width));
       transition: opacity var(--transition);
     }
     .mobile-menu::before {
@@ -180,7 +187,7 @@
       top: 0;
       right: 0;
       bottom: 0;
-      width: 50vw;
+      width: var(--mobile-panel-width);
       background: rgba(17,17,17,0.72);
       border-left: 1px solid rgba(255,255,255,0.08);
       backdrop-filter: blur(12px);
@@ -229,6 +236,7 @@
       display: flex;
       align-items: center;
       padding: 0 5%;
+      padding-inline: max(5%, calc(50vw - 800px));
       position: relative;
       overflow: hidden;
     }
@@ -472,6 +480,18 @@
     ============================================= */
     section { padding: 7rem 5%; }
 
+    section:not(#hero) > .reveal,
+    #sobre > .sobre-grid,
+    #projetos > .projetos-grid,
+    #habilidades > .skills-grid,
+    #habilidades > .progress-section,
+    #contato > .contato-wrapper {
+      width: 100%;
+      max-width: 1600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
     .section-label {
       display: inline-flex;
       align-items: center;
@@ -630,6 +650,7 @@
       display: flex;
       flex-direction: column;
       box-shadow: 0 16px 50px rgba(0,0,0,0.16);
+      min-width: 0;
     }
     .projeto-card::before {
       content: '';
@@ -661,10 +682,11 @@
         var(--black-4);
       box-shadow: 0 18px 60px rgba(235,0,11,0.14);
     }
-    .projeto-card:hover .projeto-icon {
-      color: var(--white);
-      border-color: rgba(235,0,11,0.45);
-      box-shadow: 0 0 28px rgba(235,0,11,0.18);
+    .projeto-card:hover .projeto-icon,
+    .projeto-card:focus-within .projeto-icon {
+      border-color: rgba(255,255,255,0.2);
+      box-shadow: 0 0 24px rgba(255,255,255,0.08);
+      transform: translateY(-1px) scale(1.04);
     }
 
     .projeto-top {
@@ -677,16 +699,21 @@
     .projeto-icon {
       width: 44px;
       height: 44px;
-      background: rgba(235,0,11,0.1);
-      border: 1px solid rgba(235,0,11,0.2);
+      background: rgba(255,255,255,0.045);
+      border: 1px solid rgba(255,255,255,0.1);
       border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: var(--red);
-      font-size: 1.15rem;
+      color: var(--gray-2);
+      font-size: 1.2rem;
       transition: var(--transition);
+      flex-shrink: 0;
     }
+    .projeto-icon-clock { color: #e5e7eb; }
+    .projeto-icon-strategy { color: #cbd5e1; }
+    .projeto-icon-web { color: #f3f4f6; }
+    .projeto-icon-telegram { color: #229ed9; }
 
     .projeto-status {
       display: inline-flex;
@@ -770,9 +797,17 @@
       line-height: 1;
     }
     .tag i {
-      color: var(--red);
+      color: var(--gray-3);
       font-size: 0.78rem;
     }
+    .tag-icon {
+      display: block;
+      width: 0.82rem;
+      height: 0.82rem;
+      object-fit: contain;
+      flex: 0 0 auto;
+    }
+    .tag .tag-icon-telegram { color: #229ed9; }
 
     .projeto-actions {
       display: grid;
@@ -786,7 +821,7 @@
       align-items: center;
       justify-content: center;
       gap: 0.45rem;
-      min-height: 40px;
+      min-height: 44px;
       border: 1px solid transparent;
       padding: 0.48rem 0.72rem;
       border-radius: 6px;
@@ -829,6 +864,11 @@
     }
     .btn-projeto:active { transform: translateY(0); }
 
+    .projeto-card:focus-within {
+      border-color: rgba(235,0,11,0.28);
+      box-shadow: 0 18px 55px rgba(235,0,11,0.1);
+    }
+
     /* =============================================
        HABILIDADES
     ============================================= */
@@ -865,10 +905,28 @@
     .skill-card:hover::after { transform: scaleX(1); }
 
     .skill-icon {
+      width: 2rem;
+      height: 2rem;
       font-size: 2rem;
-      margin-bottom: 0.75rem;
-      display: block;
+      line-height: 1;
+      margin: 0 auto 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
+    .skill-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    .skill-icon-pair { position: relative; }
+    .skill-icon-pair img {
+      position: absolute;
+      width: 1.45rem;
+      height: 1.45rem;
+    }
+    .skill-icon-pair img:first-child { top: 0; left: 0; }
+    .skill-icon-pair img:last-child { right: 0; bottom: 0; }
     .skill-name {
       font-size: 0.88rem;
       font-weight: 600;
@@ -1092,6 +1150,7 @@
       background: var(--black-2);
       border-top: 1px solid rgba(255,255,255,0.05);
       padding: 2.5rem 5%;
+      padding-inline: max(5%, calc(50vw - 800px));
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -1107,6 +1166,7 @@
     .footer-links {
       display: flex;
       gap: 1.5rem;
+      flex-wrap: wrap;
     }
     .footer-links a {
       font-size: 0.82rem;
@@ -1137,6 +1197,10 @@
       .nav-links, .nav-cta { display: none; }
       .hamburger { display: flex; }
       .mobile-menu { display: flex; }
+      .projeto-card:hover { transform: none; }
+    }
+    @media (min-width: 901px) {
+      .projetos-grid { grid-auto-rows: 1fr; }
     }
     @media (max-width: 600px) {
       section { padding: 5rem 6%; }
@@ -1149,7 +1213,7 @@
       .skills-grid { grid-template-columns: repeat(2, 1fr); }
       footer { flex-direction: column; align-items: flex-start; }
       .projeto-card { padding: 1.15rem; }
-      .projeto-meta { align-items: flex-start; flex-direction: column; gap: 0.25rem; }
+      .projeto-meta { align-items: center; flex-direction: row; gap: 0.5rem; }
       .projeto-category { white-space: normal; }
       .projeto-actions { grid-template-columns: 1fr; }
       .btn-projeto { width: 100%; }
@@ -1175,6 +1239,36 @@
       }
     }
 
+    @media (max-width: 420px) {
+      .sobre-card,
+      .contato-form { padding: 1.4rem; }
+      .contact-link { padding: 0.9rem 1rem; }
+      .projeto-top { margin-bottom: 0.85rem; }
+    }
+
+    @media (max-width: 360px) {
+      .skills-grid { grid-template-columns: 1fr; }
+      .skill-card { min-height: 0; }
+      .projeto-status { font-size: 0.62rem; }
+      .footer-links { gap: 1rem; }
+    }
+
+    :where(a, button, input, textarea):focus-visible {
+      outline: 2px solid var(--red);
+      outline-offset: 3px;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .tag {
+        transition: border-color var(--transition), background var(--transition), transform var(--transition);
+      }
+      .tag:hover {
+        border-color: rgba(255,255,255,0.16);
+        background: rgba(255,255,255,0.065);
+        transform: translateY(-1px);
+      }
+    }
+
     /* Toast notification */
     .toast {
       position: fixed;
@@ -1195,6 +1289,15 @@
     .toast-email {
       border-color: rgba(34,197,94,0.4);
       color: #22c55e;
+    }
+
+    @media (max-width: 600px) {
+      .toast {
+        width: max-content;
+        max-width: calc(100vw - 2rem);
+        white-space: normal;
+        text-align: center;
+      }
     }
 
     /* =============================================

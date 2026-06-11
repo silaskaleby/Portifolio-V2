@@ -86,20 +86,88 @@ document.documentElement.classList.add('js');
     hamburger.addEventListener('click', () => {
       hamburger.classList.toggle('open');
       mobileMenu.classList.toggle('open');
-      document.body.style.overflow = mobileMenu.classList.contains('open') ? 'hidden' : '';
+      const isOpen = mobileMenu.classList.contains('open');
+      hamburger.setAttribute('aria-expanded', String(isOpen));
+      document.body.style.overflow = isOpen ? 'hidden' : '';
     });
 
     function closeMobile() {
       hamburger.classList.remove('open');
       mobileMenu.classList.remove('open');
+      hamburger.setAttribute('aria-expanded', 'false');
       document.body.style.overflow = '';
     }
 
-    /* ---- Scroll suave para projetos ---- */
-    function scrollToProjects(e) {
-      e.preventDefault();
-      document.getElementById('projetos').scrollIntoView({ behavior: 'smooth' });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && mobileMenu.classList.contains('open')) closeMobile();
+    });
+
+    window.addEventListener('resize', () => {
+      if (window.innerWidth > 900 && mobileMenu.classList.contains('open')) closeMobile();
+    });
+
+    /* ---- Rolagem suave para links internos ---- */
+    let scrollAnimationFrame = null;
+
+    function smoothScrollTo(target, updateHistory = true) {
+      if (!target) return;
+
+      if (scrollAnimationFrame) cancelAnimationFrame(scrollAnimationFrame);
+
+      const startY = window.scrollY;
+      const navHeight = navbar ? navbar.getBoundingClientRect().height : 0;
+      const targetY = target.id === 'hero'
+        ? 0
+        : Math.max(0, target.getBoundingClientRect().top + startY - navHeight - 16);
+      const distance = targetY - startY;
+
+      if (Math.abs(distance) < 2) {
+        window.scrollTo(0, targetY);
+        return;
+      }
+
+      const duration = Math.min(1200, Math.max(650, Math.abs(distance) * 0.42));
+      const startTime = performance.now();
+      const easeInOutCubic = progress => progress < 0.5
+        ? 4 * progress * progress * progress
+        : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+
+      const step = now => {
+        const progress = Math.min((now - startTime) / duration, 1);
+        window.scrollTo(0, startY + distance * easeInOutCubic(progress));
+
+        if (progress < 1) {
+          scrollAnimationFrame = requestAnimationFrame(step);
+          return;
+        }
+
+        scrollAnimationFrame = null;
+        if (updateHistory) history.pushState(null, '', `#${target.id}`);
+      };
+
+      scrollAnimationFrame = requestAnimationFrame(step);
     }
+
+    document.addEventListener('click', e => {
+      const link = e.target.closest('a[href^="#"]');
+      if (!link || e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
+
+      const targetId = link.getAttribute('href').slice(1);
+      const target = document.getElementById(targetId);
+      if (!target) return;
+
+      e.preventDefault();
+      if (mobileMenu.classList.contains('open')) closeMobile();
+      smoothScrollTo(target);
+    });
+
+    ['wheel', 'touchstart'].forEach(eventName => {
+      window.addEventListener(eventName, () => {
+        if (!scrollAnimationFrame) return;
+        cancelAnimationFrame(scrollAnimationFrame);
+        scrollAnimationFrame = null;
+      }, { passive: true });
+    });
 
     /* ---- Scroll reveal ---- */
     const reveals = document.querySelectorAll('.reveal');
@@ -157,12 +225,6 @@ document.documentElement.classList.add('js');
         const y = (e.clientY / window.innerHeight - 0.5) * 20;
         glow.style.transform = `translate(${x}px, ${y}px)`;
       });
-    }
-
-    /* ---- Scroll suave para contato ---- */
-    function scrollToContact(e) {
-      if (e) e.preventDefault();
-      document.getElementById('contato').scrollIntoView({ behavior: 'smooth' });
     }
 
     /* ---- Parallax suave ao scroll nas imagens ---- */
