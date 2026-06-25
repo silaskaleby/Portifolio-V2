@@ -176,6 +176,161 @@ document.documentElement.classList.add('js');
     }, { threshold: 0.12 });
     reveals.forEach(el => observer.observe(el));
 
+    /* ---- Projetos: scroll horizontal, drag e destaque central ---- */
+    function initProjectsScroll() {
+      const section = document.getElementById('projetos');
+      const stage = section?.querySelector('.projetos-scroll-stage');
+      const viewport = section?.querySelector('.projetos-viewport');
+      const cards = Array.from(section?.querySelectorAll('.projeto-card') || []);
+      if (!section || !stage || !viewport || cards.length === 0) return;
+
+      const desktopQuery = window.matchMedia('(min-width: 901px)');
+      const zigzag = [-28, 30, -22, 26];
+      let maxScroll = 0;
+      let stageStart = 0;
+      let ticking = false;
+      let isDragging = false;
+      let dragStarted = false;
+      let dragStartX = 0;
+      let dragStartScroll = 0;
+      let suppressClick = false;
+
+      const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+
+      function measure() {
+        maxScroll = Math.max(0, viewport.scrollWidth - viewport.clientWidth);
+        const navHeight = navbar ? navbar.getBoundingClientRect().height : 0;
+        const stickyTop = Math.max(72, Math.round(navHeight + 18));
+        stage.style.setProperty('--projects-sticky-top', `${stickyTop}px`);
+        stage.style.setProperty('--projects-scroll-distance', `${maxScroll}px`);
+        stageStart = stage.getBoundingClientRect().top + window.scrollY - stickyTop;
+        section.classList.toggle('projects-scroll-ready', desktopQuery.matches && maxScroll > 12);
+        updateFromVerticalScroll();
+        updateCardFocus();
+      }
+
+      function updateCardFocus() {
+        const viewportRect = viewport.getBoundingClientRect();
+        const viewportCenter = viewportRect.left + viewportRect.width / 2;
+        const focusRange = Math.max(260, viewportRect.width * 0.54);
+        let focusedCard = cards[0];
+        let focusedAmount = -1;
+
+        cards.forEach((card, index) => {
+          const rect = card.getBoundingClientRect();
+          const cardCenter = rect.left + rect.width / 2;
+          const distance = Math.abs(viewportCenter - cardCenter);
+          const focus = clamp(1 - distance / focusRange, 0, 1);
+          const baseY = zigzag[index % zigzag.length];
+          const y = baseY * (1 - focus);
+          const scale = 0.97 + focus * 0.075;
+          const opacity = 0.68 + focus * 0.32;
+
+          card.style.setProperty('--project-y', `${y.toFixed(2)}px`);
+          card.style.setProperty('--project-scale', scale.toFixed(3));
+          card.style.setProperty('--project-opacity', opacity.toFixed(3));
+
+          if (focus > focusedAmount) {
+            focusedAmount = focus;
+            focusedCard = card;
+          }
+        });
+
+        cards.forEach(card => card.classList.toggle('is-focused', card === focusedCard));
+      }
+
+      function updateFromVerticalScroll() {
+        if (!desktopQuery.matches || maxScroll <= 0 || isDragging) return;
+
+        const progress = clamp((window.scrollY - stageStart) / maxScroll, 0, 1);
+        viewport.scrollLeft = progress * maxScroll;
+      }
+
+      function requestScrollUpdate() {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(() => {
+          updateFromVerticalScroll();
+          updateCardFocus();
+          ticking = false;
+        });
+      }
+
+      function syncVerticalToHorizontal() {
+        if (!desktopQuery.matches || maxScroll <= 0) return;
+
+        const stageEnd = stageStart + maxScroll;
+        if (window.scrollY < stageStart || window.scrollY > stageEnd) return;
+
+        const progress = viewport.scrollLeft / maxScroll;
+        window.scrollTo({ top: stageStart + progress * maxScroll, behavior: 'auto' });
+      }
+
+      viewport.addEventListener('pointerdown', event => {
+        if (event.button !== 0 && event.pointerType === 'mouse') return;
+
+        isDragging = true;
+        dragStarted = false;
+        dragStartX = event.clientX;
+        dragStartScroll = viewport.scrollLeft;
+        viewport.classList.add('is-dragging');
+        viewport.setPointerCapture(event.pointerId);
+      });
+
+      viewport.addEventListener('pointermove', event => {
+        if (!isDragging) return;
+
+        const deltaX = event.clientX - dragStartX;
+        if (Math.abs(deltaX) > 4) {
+          dragStarted = true;
+          suppressClick = true;
+        }
+
+        if (!dragStarted) return;
+
+        event.preventDefault();
+        viewport.scrollLeft = dragStartScroll - deltaX;
+        updateCardFocus();
+      });
+
+      function endDrag(event) {
+        if (!isDragging) return;
+
+        isDragging = false;
+        viewport.classList.remove('is-dragging');
+        if (viewport.hasPointerCapture(event.pointerId)) {
+          viewport.releasePointerCapture(event.pointerId);
+        }
+        syncVerticalToHorizontal();
+
+        if (suppressClick) {
+          setTimeout(() => { suppressClick = false; }, 120);
+        }
+      }
+
+      viewport.addEventListener('pointerup', endDrag);
+      viewport.addEventListener('pointercancel', endDrag);
+      viewport.addEventListener('lostpointercapture', () => {
+        isDragging = false;
+        viewport.classList.remove('is-dragging');
+      });
+
+      viewport.addEventListener('click', event => {
+        if (!suppressClick) return;
+        event.preventDefault();
+        event.stopPropagation();
+      }, true);
+
+      viewport.addEventListener('scroll', () => requestAnimationFrame(updateCardFocus), { passive: true });
+      window.addEventListener('scroll', requestScrollUpdate, { passive: true });
+      window.addEventListener('resize', measure);
+
+      if (document.fonts?.ready) document.fonts.ready.then(measure);
+      measure();
+    }
+
+    initProjectsScroll();
+
     /* ---- Progress bars ---- */
     const progressBars = document.querySelectorAll('.progress-fill');
     const barObserver  = new IntersectionObserver((entries) => {
