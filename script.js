@@ -181,32 +181,54 @@ document.documentElement.classList.add('js');
       const section = document.getElementById('projetos');
       const stage = section?.querySelector('.projetos-scroll-stage');
       const viewport = section?.querySelector('.projetos-viewport');
+      const track = section?.querySelector('.projetos-grid');
       const cards = Array.from(section?.querySelectorAll('.projeto-card') || []);
-      if (!section || !stage || !viewport || cards.length === 0) return;
+      if (!section || !stage || !viewport || !track || cards.length === 0) return;
 
       const desktopQuery = window.matchMedia('(min-width: 901px)');
-      const zigzag = [-28, 30, -22, 26];
-      let maxScroll = 0;
+      const zigzag = [-22, 24, -18, 20];
+      let maxShift = 0;
+      let scrollDistance = 0;
       let stageStart = 0;
-      let ticking = false;
+      let targetProgress = 0;
+      let currentProgress = 0;
+      let rafId = null;
       let isDragging = false;
       let dragStarted = false;
       let dragStartX = 0;
-      let dragStartScroll = 0;
+      let dragStartProgress = 0;
       let suppressClick = false;
 
       const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
       function measure() {
-        maxScroll = Math.max(0, viewport.scrollWidth - viewport.clientWidth);
+        const wasReady = section.classList.contains('projects-scroll-ready');
+        section.classList.remove('projects-scroll-ready');
+        stage.style.setProperty('--projects-x', '0px');
+
+        maxShift = Math.max(0, track.scrollWidth - viewport.clientWidth);
+        scrollDistance = Math.max(maxShift * 1.22, window.innerHeight * 0.9);
         const navHeight = navbar ? navbar.getBoundingClientRect().height : 0;
         const stickyTop = Math.max(72, Math.round(navHeight + 18));
+
         stage.style.setProperty('--projects-sticky-top', `${stickyTop}px`);
-        stage.style.setProperty('--projects-scroll-distance', `${maxScroll}px`);
+        stage.style.setProperty('--projects-scroll-distance', `${scrollDistance}px`);
         stageStart = stage.getBoundingClientRect().top + window.scrollY - stickyTop;
-        section.classList.toggle('projects-scroll-ready', desktopQuery.matches && maxScroll > 12);
-        updateFromVerticalScroll();
-        updateCardFocus();
+        section.classList.toggle('projects-scroll-ready', desktopQuery.matches && maxShift > 12);
+
+        if (!desktopQuery.matches || maxShift <= 12) {
+          targetProgress = 0;
+          currentProgress = 0;
+          stage.style.setProperty('--projects-x', '0px');
+          if (wasReady) viewport.scrollTo({ left: 0, behavior: 'auto' });
+          updateCardFocus();
+          return;
+        }
+
+        viewport.scrollTo({ left: 0, behavior: 'auto' });
+        updateTargetFromScroll(true);
+        currentProgress = targetProgress;
+        render();
       }
 
       function updateCardFocus() {
@@ -223,8 +245,8 @@ document.documentElement.classList.add('js');
           const focus = clamp(1 - distance / focusRange, 0, 1);
           const baseY = zigzag[index % zigzag.length];
           const y = baseY * (1 - focus);
-          const scale = 0.97 + focus * 0.075;
-          const opacity = 0.68 + focus * 0.32;
+          const scale = 0.982 + focus * 0.045;
+          const opacity = 0.74 + focus * 0.26;
 
           card.style.setProperty('--project-y', `${y.toFixed(2)}px`);
           card.style.setProperty('--project-scale', scale.toFixed(3));
@@ -239,41 +261,61 @@ document.documentElement.classList.add('js');
         cards.forEach(card => card.classList.toggle('is-focused', card === focusedCard));
       }
 
-      function updateFromVerticalScroll() {
-        if (!desktopQuery.matches || maxScroll <= 0 || isDragging) return;
-
-        const progress = clamp((window.scrollY - stageStart) / maxScroll, 0, 1);
-        viewport.scrollLeft = progress * maxScroll;
+      function render() {
+        const x = -maxShift * currentProgress;
+        stage.style.setProperty('--projects-x', `${x.toFixed(2)}px`);
+        updateCardFocus();
       }
 
-      function requestScrollUpdate() {
-        if (ticking) return;
-        ticking = true;
-        requestAnimationFrame(() => {
-          updateFromVerticalScroll();
+      function animate() {
+        rafId = null;
+
+        if (!desktopQuery.matches || maxShift <= 12) {
           updateCardFocus();
-          ticking = false;
-        });
+          return;
+        }
+
+        const diff = targetProgress - currentProgress;
+        if (Math.abs(diff) < 0.0008) {
+          currentProgress = targetProgress;
+          render();
+          return;
+        }
+
+        currentProgress += diff * 0.14;
+        render();
+        requestRender();
       }
 
-      function syncVerticalToHorizontal() {
-        if (!desktopQuery.matches || maxScroll <= 0) return;
+      function requestRender() {
+        if (rafId) return;
+        rafId = requestAnimationFrame(animate);
+      }
 
-        const stageEnd = stageStart + maxScroll;
+      function updateTargetFromScroll(immediate = false) {
+        if (!desktopQuery.matches || maxShift <= 12 || isDragging) return;
+
+        targetProgress = clamp((window.scrollY - stageStart) / scrollDistance, 0, 1);
+        if (immediate) currentProgress = targetProgress;
+        requestRender();
+      }
+
+      function syncVerticalToProgress() {
+        if (!desktopQuery.matches || maxShift <= 12) return;
+
+        const stageEnd = stageStart + scrollDistance;
         if (window.scrollY < stageStart || window.scrollY > stageEnd) return;
 
-        const progress = viewport.scrollLeft / maxScroll;
-        window.scrollTo({ top: stageStart + progress * maxScroll, behavior: 'auto' });
+        window.scrollTo({ top: stageStart + targetProgress * scrollDistance, behavior: 'auto' });
       }
 
       viewport.addEventListener('pointerdown', event => {
-        if (event.button !== 0 && event.pointerType === 'mouse') return;
+        if (!desktopQuery.matches || maxShift <= 12 || event.pointerType !== 'mouse' || event.button !== 0) return;
 
         isDragging = true;
         dragStarted = false;
         dragStartX = event.clientX;
-        dragStartScroll = viewport.scrollLeft;
-        viewport.classList.add('is-dragging');
+        dragStartProgress = targetProgress;
         viewport.setPointerCapture(event.pointerId);
       });
 
@@ -284,13 +326,14 @@ document.documentElement.classList.add('js');
         if (Math.abs(deltaX) > 4) {
           dragStarted = true;
           suppressClick = true;
+          viewport.classList.add('is-dragging');
         }
 
         if (!dragStarted) return;
 
         event.preventDefault();
-        viewport.scrollLeft = dragStartScroll - deltaX;
-        updateCardFocus();
+        targetProgress = clamp(dragStartProgress - (deltaX / maxShift), 0, 1);
+        requestRender();
       });
 
       function endDrag(event) {
@@ -301,7 +344,7 @@ document.documentElement.classList.add('js');
         if (viewport.hasPointerCapture(event.pointerId)) {
           viewport.releasePointerCapture(event.pointerId);
         }
-        syncVerticalToHorizontal();
+        syncVerticalToProgress();
 
         if (suppressClick) {
           setTimeout(() => { suppressClick = false; }, 120);
@@ -321,8 +364,11 @@ document.documentElement.classList.add('js');
         event.stopPropagation();
       }, true);
 
-      viewport.addEventListener('scroll', () => requestAnimationFrame(updateCardFocus), { passive: true });
-      window.addEventListener('scroll', requestScrollUpdate, { passive: true });
+      viewport.addEventListener('scroll', () => {
+        if (desktopQuery.matches) return;
+        requestRender();
+      }, { passive: true });
+      window.addEventListener('scroll', () => updateTargetFromScroll(), { passive: true });
       window.addEventListener('resize', measure);
 
       if (document.fonts?.ready) document.fonts.ready.then(measure);

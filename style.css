@@ -632,6 +632,7 @@
     .projetos-scroll-stage {
       --projects-sticky-top: 88px;
       --projects-scroll-distance: 0px;
+      --projects-x: 0px;
       margin-top: 3rem;
       position: relative;
     }
@@ -639,15 +640,16 @@
     .projetos-viewport {
       margin-inline: -5%;
       overflow-x: auto;
-      overflow-y: visible;
+      overflow-y: hidden;
       padding: 2.3rem 5% 2.8rem;
-      scroll-behavior: smooth;
+      scroll-behavior: auto;
       scroll-padding-inline: 5%;
       scrollbar-width: none;
       -webkit-overflow-scrolling: touch;
       touch-action: pan-x pan-y;
       cursor: grab;
-      scroll-snap-type: x proximity;
+      scroll-snap-type: none;
+      overscroll-behavior-inline: contain;
     }
     .projetos-viewport::-webkit-scrollbar { display: none; }
     .projetos-viewport.is-dragging {
@@ -663,6 +665,9 @@
       align-items: center;
       gap: clamp(1rem, 2vw, 1.7rem);
       min-width: max-content;
+      transform: translate3d(var(--projects-x), 0, 0);
+      transform-style: preserve-3d;
+      will-change: transform;
     }
     .projetos-grid::before,
     .projetos-grid::after {
@@ -680,6 +685,8 @@
         min-height: calc(100vh - var(--projects-sticky-top));
         display: flex;
         align-items: center;
+        overflow: hidden;
+        touch-action: pan-y;
       }
     }
 
@@ -711,6 +718,7 @@
       scroll-snap-align: center;
       transform: translateY(var(--project-y)) scale(var(--project-scale));
       transform-origin: center;
+      will-change: transform, opacity;
     }
     .projeto-card::before {
       content: '';
@@ -758,6 +766,13 @@
     }
     html.js .projeto-card.reveal.visible:hover {
       transform: translateY(calc(var(--project-y) - 5px)) scale(calc(var(--project-scale) + 0.01));
+    }
+    html.js #projetos.projects-scroll-ready .projeto-card.reveal.visible {
+      transition:
+        opacity 0.16s linear,
+        border-color var(--transition),
+        background var(--transition),
+        box-shadow var(--transition);
     }
     .projeto-card:hover .projeto-icon,
     .projeto-card:focus-within .projeto-icon {
@@ -1275,11 +1290,13 @@
         margin-inline: -6%;
         padding: 2rem 6% 2.35rem;
         cursor: auto;
-        scroll-snap-type: x mandatory;
+        scroll-snap-type: x proximity;
       }
       .projetos-grid {
         gap: 1rem;
         min-width: 0;
+        transform: none;
+        will-change: auto;
       }
       .projetos-grid::before,
       .projetos-grid::after {
