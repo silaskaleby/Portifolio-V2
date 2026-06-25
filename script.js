@@ -172,9 +172,76 @@ document.documentElement.classList.add('js');
     /* ---- Scroll reveal ---- */
     const reveals = document.querySelectorAll('.reveal');
     const observer = new IntersectionObserver((entries) => {
-      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
-    }, { threshold: 0.12 });
+      entries.forEach(e => {
+        e.target.classList.toggle('visible', e.isIntersecting);
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
     reveals.forEach(el => observer.observe(el));
+
+    /* ---- Entrada sequencial da seção de contato ---- */
+    function initContactAnimations() {
+      const contato = document.getElementById('contato');
+      if (!contato) return;
+
+      const contactCards = Array.from(contato.querySelectorAll('.contact-motion-left'));
+      const contactForm = contato.querySelector('.contact-motion-form');
+      const animatedItems = [...contactCards, contactForm].filter(Boolean);
+      if (animatedItems.length === 0) return;
+
+      let contactTimers = [];
+      const clearContactTimers = () => {
+        contactTimers.forEach(timer => clearTimeout(timer));
+        contactTimers = [];
+      };
+
+      const queueContactAnimation = (callback, delay) => {
+        const timer = setTimeout(callback, delay);
+        contactTimers.push(timer);
+      };
+
+      const playContactIntro = () => {
+        clearContactTimers();
+
+        contactCards.forEach((card, index) => {
+          queueContactAnimation(() => card.classList.add('is-visible'), index * 120);
+        });
+
+        if (contactForm) {
+          queueContactAnimation(() => contactForm.classList.add('is-visible'), 180);
+        }
+      };
+
+      const resetContactIntro = () => {
+        clearContactTimers();
+
+        [...contactCards].reverse().forEach((card, index) => {
+          queueContactAnimation(() => card.classList.remove('is-visible'), index * 55);
+        });
+
+        if (contactForm) {
+          queueContactAnimation(() => contactForm.classList.remove('is-visible'), 70);
+        }
+      };
+
+      if (!('IntersectionObserver' in window)) {
+        playContactIntro();
+        return;
+      }
+
+      const contactObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            playContactIntro();
+          } else {
+            resetContactIntro();
+          }
+        });
+      }, { threshold: 0.22, rootMargin: '0px 0px -12% 0px' });
+
+      contactObserver.observe(contato);
+    }
+
+    initContactAnimations();
 
     /* ---- Projetos: scroll horizontal, drag e destaque central ---- */
     function initProjectsScroll() {
@@ -379,15 +446,23 @@ document.documentElement.classList.add('js');
 
     /* ---- Progress bars ---- */
     const progressBars = document.querySelectorAll('.progress-fill');
+    const progressSection = document.querySelector('.progress-section');
+    const setProgressBars = (active) => {
+      progressBars.forEach(bar => {
+        const width = active ? bar.getAttribute('data-width') : 0;
+        bar.style.width = width + '%';
+      });
+    };
+
     const barObserver  = new IntersectionObserver((entries) => {
       entries.forEach(e => {
-        if (e.isIntersecting) {
-          const w = e.target.getAttribute('data-width');
-          e.target.style.width = w + '%';
-        }
+        setProgressBars(e.isIntersecting);
       });
-    }, { threshold: 0.4 });
-    progressBars.forEach(b => barObserver.observe(b));
+    }, { threshold: 0.22, rootMargin: '0px 0px -12% 0px' });
+
+    if (progressSection) {
+      barObserver.observe(progressSection);
+    }
 
     /* ---- Formulário → WhatsApp ---- */
     function enviarForm() {

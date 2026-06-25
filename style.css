@@ -1235,6 +1235,82 @@
     .form-submit:hover { opacity: 0.88; transform: translateY(-1px); box-shadow: var(--shadow-red); }
     .form-submit:active { transform: translateY(0); }
 
+    #contato .contact-motion {
+      transform: translate3d(0, 0, 0);
+    }
+    html.js #contato .contact-motion {
+      opacity: 0;
+      filter: blur(8px);
+      transform: translate3d(-112px, 18px, 0) scale(0.965);
+      transition:
+        opacity 0.86s cubic-bezier(0.22, 1, 0.36, 1),
+        transform 0.92s cubic-bezier(0.22, 1, 0.36, 1),
+        filter 0.92s cubic-bezier(0.22, 1, 0.36, 1),
+        border-color var(--transition),
+        background var(--transition),
+        box-shadow var(--transition);
+      will-change: opacity, transform, filter;
+    }
+    html.js #contato .contact-motion-form {
+      transform: translate3d(136px, 18px, 0) scale(0.965);
+    }
+    html.js #contato .contact-motion.is-visible {
+      opacity: 1;
+      filter: blur(0);
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+    html.js #contato .contact-link.contact-motion.is-visible:hover,
+    html.js #contato .email-copy-field.contact-motion.is-visible:hover,
+    html.js #contato .email-copy-field.contact-motion.is-visible:focus-within {
+      transform: translate3d(6px, 0, 0) scale(1);
+    }
+    html.js #contato .email-copy-button:hover,
+    html.js #contato .email-copy-button:focus-visible {
+      transform: translateY(-1px) scale(1.02);
+    }
+
+    @media (max-width: 900px) {
+      html.js #contato .contact-motion,
+      html.js #contato .contact-motion-form {
+        transform: translate3d(0, 58px, 0) scale(0.97);
+      }
+      html.js #contato .contact-motion.is-visible {
+        transform: translate3d(0, 0, 0) scale(1);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html.js #contato .contact-motion {
+        filter: none;
+        transform: translate3d(-48px, 8px, 0);
+        transition:
+          opacity 0.42s ease,
+          transform 0.42s ease,
+          border-color var(--transition),
+          background var(--transition),
+          box-shadow var(--transition);
+      }
+      html.js #contato .contact-motion-form {
+        transform: translate3d(56px, 8px, 0);
+      }
+      html.js #contato .contact-motion.is-visible,
+      html.js #contato .contact-motion-form.is-visible {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) and (max-width: 900px) {
+      html.js #contato .contact-motion,
+      html.js #contato .contact-motion-form {
+        transform: translate3d(0, 24px, 0);
+      }
+      html.js #contato .contact-motion.is-visible,
+      html.js #contato .contact-motion-form.is-visible {
+        transform: translate3d(0, 0, 0);
+      }
+    }
+
     /* =============================================
        FOOTER
     ============================================= */
