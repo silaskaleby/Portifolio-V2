@@ -203,11 +203,11 @@ document.documentElement.classList.add('js');
         clearContactTimers();
 
         contactCards.forEach((card, index) => {
-          queueContactAnimation(() => card.classList.add('is-visible'), index * 120);
+          queueContactAnimation(() => card.classList.add('is-visible'), index * 170);
         });
 
         if (contactForm) {
-          queueContactAnimation(() => contactForm.classList.add('is-visible'), 180);
+          queueContactAnimation(() => contactForm.classList.add('is-visible'), 260);
         }
       };
 
@@ -215,11 +215,11 @@ document.documentElement.classList.add('js');
         clearContactTimers();
 
         [...contactCards].reverse().forEach((card, index) => {
-          queueContactAnimation(() => card.classList.remove('is-visible'), index * 55);
+          queueContactAnimation(() => card.classList.remove('is-visible'), index * 70);
         });
 
         if (contactForm) {
-          queueContactAnimation(() => contactForm.classList.remove('is-visible'), 70);
+          queueContactAnimation(() => contactForm.classList.remove('is-visible'), 90);
         }
       };
 
@@ -236,7 +236,7 @@ document.documentElement.classList.add('js');
             resetContactIntro();
           }
         });
-      }, { threshold: 0.22, rootMargin: '0px 0px -12% 0px' });
+      }, { threshold: 0.28, rootMargin: '0px 0px -18% 0px' });
 
       contactObserver.observe(contato);
     }
@@ -259,24 +259,43 @@ document.documentElement.classList.add('js');
       let stageStart = 0;
       let targetProgress = 0;
       let currentProgress = 0;
+      let currentX = 0;
       let rafId = null;
       let isDragging = false;
       let dragStarted = false;
       let dragStartX = 0;
       let dragStartProgress = 0;
       let suppressClick = false;
+      let viewportWidth = 0;
+      let focusRangeDesktop = 0;
+      let focusRangeMobile = 0;
+      let focusedIndex = -1;
+      let cardMetrics = [];
 
       const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
       function measure() {
         const wasReady = section.classList.contains('projects-scroll-ready');
         section.classList.remove('projects-scroll-ready');
-        stage.style.setProperty('--projects-x', '0px');
+        currentX = 0;
+        track.style.transform = 'translate3d(0px, 0, 0)';
 
         maxShift = Math.max(0, track.scrollWidth - viewport.clientWidth);
         scrollDistance = Math.max(maxShift * 1.22, window.innerHeight * 0.9);
         const navHeight = navbar ? navbar.getBoundingClientRect().height : 0;
         const stickyTop = Math.max(72, Math.round(navHeight + 18));
+        viewportWidth = viewport.clientWidth;
+        focusRangeDesktop = Math.max(340, viewportWidth * 0.46);
+        focusRangeMobile = Math.max(230, viewportWidth * 0.66);
+
+        const trackRect = track.getBoundingClientRect();
+        cardMetrics = cards.map(card => {
+          const rect = card.getBoundingClientRect();
+          return {
+            center: rect.left - trackRect.left + rect.width / 2,
+            width: rect.width
+          };
+        });
 
         stage.style.setProperty('--projects-sticky-top', `${stickyTop}px`);
         stage.style.setProperty('--projects-scroll-distance', `${scrollDistance}px`);
@@ -286,7 +305,8 @@ document.documentElement.classList.add('js');
         if (!desktopQuery.matches || maxShift <= 12) {
           targetProgress = 0;
           currentProgress = 0;
-          stage.style.setProperty('--projects-x', '0px');
+          currentX = 0;
+          track.style.transform = 'translate3d(0px, 0, 0)';
           if (wasReady) viewport.scrollTo({ left: 0, behavior: 'auto' });
           updateCardFocus();
           return;
@@ -299,38 +319,49 @@ document.documentElement.classList.add('js');
       }
 
       function updateCardFocus() {
-        const viewportRect = viewport.getBoundingClientRect();
-        const viewportCenter = viewportRect.left + viewportRect.width / 2;
-        const focusRange = Math.max(260, viewportRect.width * 0.54);
-        let focusedCard = cards[0];
+        const contentX = desktopQuery.matches ? -currentX : viewport.scrollLeft;
+        const viewportCenter = contentX + viewportWidth / 2;
+        const focusRange = desktopQuery.matches ? focusRangeDesktop : focusRangeMobile;
+        let nextFocusedIndex = 0;
         let focusedAmount = -1;
 
         cards.forEach((card, index) => {
-          const rect = card.getBoundingClientRect();
-          const cardCenter = rect.left + rect.width / 2;
+          const metric = cardMetrics[index];
+          if (!metric) return;
+
+          const cardCenter = metric.center;
           const distance = Math.abs(viewportCenter - cardCenter);
           const focus = clamp(1 - distance / focusRange, 0, 1);
+          const easedFocus = focus * focus * (3 - 2 * focus);
           const baseY = zigzag[index % zigzag.length];
-          const y = baseY * (1 - focus);
-          const scale = 0.982 + focus * 0.045;
-          const opacity = 0.74 + focus * 0.26;
+          const y = baseY * (1 - easedFocus);
+          const scale = desktopQuery.matches
+            ? 0.9 + easedFocus * 0.17
+            : 0.94 + easedFocus * 0.08;
+          const opacity = 0.62 + easedFocus * 0.38;
+          const glow = easedFocus;
 
           card.style.setProperty('--project-y', `${y.toFixed(2)}px`);
           card.style.setProperty('--project-scale', scale.toFixed(3));
           card.style.setProperty('--project-opacity', opacity.toFixed(3));
+          card.style.setProperty('--project-glow', glow.toFixed(3));
+          card.style.setProperty('--project-z', `${Math.round(1 + easedFocus * 20)}`);
 
           if (focus > focusedAmount) {
             focusedAmount = focus;
-            focusedCard = card;
+            nextFocusedIndex = index;
           }
         });
 
-        cards.forEach(card => card.classList.toggle('is-focused', card === focusedCard));
+        if (nextFocusedIndex !== focusedIndex) {
+          focusedIndex = nextFocusedIndex;
+          cards.forEach((card, index) => card.classList.toggle('is-focused', index === focusedIndex));
+        }
       }
 
       function render() {
-        const x = -maxShift * currentProgress;
-        stage.style.setProperty('--projects-x', `${x.toFixed(2)}px`);
+        currentX = -maxShift * currentProgress;
+        track.style.transform = `translate3d(${currentX.toFixed(2)}px, 0, 0)`;
         updateCardFocus();
       }
 
