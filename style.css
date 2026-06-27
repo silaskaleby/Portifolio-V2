@@ -1709,26 +1709,36 @@
           box-shadow var(--transition);
       }
       .skills-grid {
+        --skills-gap: clamp(0.75rem, 3.2vw, 1rem);
         display: flex;
         grid-template-columns: none;
-        gap: clamp(0.85rem, 2.2vw, 1.1rem);
-        margin-inline: -6%;
-        padding: 0.25rem 6% 0.85rem;
+        gap: var(--skills-gap);
+        margin-inline: 0;
+        padding: 0.25rem 0 0.85rem;
         overflow-x: auto;
-        overflow-y: visible;
+        overflow-y: hidden;
         scroll-snap-type: x proximity;
-        scroll-padding-inline: 6%;
+        scroll-padding-inline: 0;
         scrollbar-width: none;
         -webkit-overflow-scrolling: touch;
-        touch-action: pan-x pan-y;
+        touch-action: pan-y pan-x;
+        overscroll-behavior-inline: contain;
       }
       .skills-grid::-webkit-scrollbar {
         display: none;
       }
       .skill-card {
-        flex: 0 0 clamp(168px, 42vw, 220px);
+        flex: 0 0 calc((100% - var(--skills-gap)) / 2);
         min-height: 160px;
         scroll-snap-align: start;
+      }
+      html.js #habilidades .skill-card.reveal {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+        transition-delay: 0s !important;
+      }
+      .skill-card:hover {
+        transform: none;
       }
     }
 
@@ -1762,6 +1772,12 @@
             rgba(10,10,10,0.2) 62%,
             rgba(10,10,10,0.86) 100%
           );
+      }
+      .skills-grid {
+        --skills-gap: 1rem;
+      }
+      .skill-card {
+        flex-basis: calc((100% - (var(--skills-gap) * 2)) / 3);
       }
     }
 
@@ -1808,11 +1824,11 @@
           );
       }
       .skill-card {
-        flex-basis: min(74vw, 250px);
+        flex-basis: calc((100% - var(--skills-gap)) / 2);
       }
     }
 
-    @media (max-width: 360px) {
+    @media (max-width: 340px) {
       .hero-actions {
         gap: 0.72rem;
       }
@@ -1823,7 +1839,13 @@
         padding-bottom: 0.7rem;
         font-size: 0.78rem;
       }
+      .skills-grid {
+        --skills-gap: 1.5rem;
+        padding-inline: calc((100% - min(78vw, 248px)) / 2);
+        scroll-padding-inline: calc((100% - min(78vw, 248px)) / 2);
+      }
       .skill-card {
         flex-basis: min(78vw, 248px);
+        scroll-snap-align: center;
       }
     }
