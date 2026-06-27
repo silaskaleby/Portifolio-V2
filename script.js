@@ -108,31 +108,89 @@ document.documentElement.classList.add('js');
 
     /* ---- Rolagem suave para links internos ---- */
     let scrollAnimationFrame = null;
+    let scrollNavigationToken = 0;
 
-    function smoothScrollTo(target, updateHistory = true) {
-      if (!target) return;
+    function getProjectsScrollRange() {
+      const section = document.getElementById('projetos');
+      const stage = section?.querySelector('.projetos-scroll-stage');
+      if (!section || !stage || !section.classList.contains('projects-scroll-ready')) return null;
 
-      if (scrollAnimationFrame) cancelAnimationFrame(scrollAnimationFrame);
+      const style = getComputedStyle(stage);
+      const stickyTop = parseFloat(style.getPropertyValue('--projects-sticky-top')) || 0;
+      const distance = parseFloat(style.getPropertyValue('--projects-scroll-distance')) || 0;
+      if (distance <= 0) return null;
 
+      const start = stage.getBoundingClientRect().top + window.scrollY - stickyTop;
+      const end = start + distance;
+      return { start, end };
+    }
+
+    function getAnchorWaypoints(startY, targetY) {
+      const range = getProjectsScrollRange();
+      if (!range) return [{ type: 'smooth', y: targetY }];
+
+      const buffer = 2;
+      const beforeProjects = range.start - buffer;
+      const afterProjects = range.end + buffer;
+      const insideProjects = startY > range.start && startY < range.end;
+      const crossesDown = startY < range.start && targetY > range.end;
+      const crossesUp = startY > range.end && targetY < range.start;
+      const exitsDown = insideProjects && targetY > range.end;
+      const exitsUp = insideProjects && targetY < range.start;
+
+      if (crossesDown) {
+        return [
+          { type: 'smooth', y: beforeProjects },
+          { type: 'jump', y: afterProjects, projectProgress: 1 },
+          { type: 'smooth', y: targetY }
+        ];
+      }
+
+      if (crossesUp) {
+        return [
+          { type: 'smooth', y: afterProjects },
+          { type: 'jump', y: beforeProjects, projectProgress: 0 },
+          { type: 'smooth', y: targetY }
+        ];
+      }
+
+      if (exitsDown) {
+        return [
+          { type: 'jump', y: afterProjects, projectProgress: 1 },
+          { type: 'smooth', y: targetY }
+        ];
+      }
+
+      if (exitsUp) {
+        return [
+          { type: 'jump', y: beforeProjects, projectProgress: 0 },
+          { type: 'smooth', y: targetY }
+        ];
+      }
+
+      return [{ type: 'smooth', y: targetY }];
+    }
+
+    const easeInOutCubic = progress => progress < 0.5
+      ? 4 * progress * progress * progress
+      : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+
+    function animateScrollTo(targetY, token, onComplete) {
       const startY = window.scrollY;
-      const navHeight = navbar ? navbar.getBoundingClientRect().height : 0;
-      const targetY = target.id === 'hero'
-        ? 0
-        : Math.max(0, target.getBoundingClientRect().top + startY - navHeight - 16);
       const distance = targetY - startY;
 
       if (Math.abs(distance) < 2) {
         window.scrollTo(0, targetY);
+        onComplete();
         return;
       }
 
-      const duration = Math.min(1200, Math.max(650, Math.abs(distance) * 0.42));
+      const duration = Math.min(950, Math.max(420, Math.abs(distance) * 0.32));
       const startTime = performance.now();
-      const easeInOutCubic = progress => progress < 0.5
-        ? 4 * progress * progress * progress
-        : 1 - Math.pow(-2 * progress + 2, 3) / 2;
 
       const step = now => {
+        if (token !== scrollNavigationToken) return;
+
         const progress = Math.min((now - startTime) / duration, 1);
         window.scrollTo(0, startY + distance * easeInOutCubic(progress));
 
@@ -141,11 +199,61 @@ document.documentElement.classList.add('js');
           return;
         }
 
-        scrollAnimationFrame = null;
-        if (updateHistory) history.pushState(null, '', `#${target.id}`);
+        onComplete();
       };
 
       scrollAnimationFrame = requestAnimationFrame(step);
+    }
+
+    function smoothScrollTo(target, updateHistory = true) {
+      if (!target) return;
+
+      if (scrollAnimationFrame) cancelAnimationFrame(scrollAnimationFrame);
+      scrollNavigationToken += 1;
+      const token = scrollNavigationToken;
+
+      const startY = window.scrollY;
+      const navHeight = navbar ? navbar.getBoundingClientRect().height : 0;
+      const targetY = target.id === 'hero'
+        ? 0
+        : Math.max(0, target.getBoundingClientRect().top + startY - navHeight - 16);
+
+      if (Math.abs(targetY - startY) < 2) {
+        window.scrollTo(0, targetY);
+        if (updateHistory) history.pushState(null, '', `#${target.id}`);
+        return;
+      }
+
+      const waypoints = getAnchorWaypoints(startY, targetY);
+      let index = 0;
+
+      const runNext = () => {
+        if (token !== scrollNavigationToken) return;
+
+        const waypoint = waypoints[index];
+        index += 1;
+
+        if (!waypoint) {
+          scrollAnimationFrame = null;
+          if (updateHistory) history.pushState(null, '', `#${target.id}`);
+          return;
+        }
+
+        if (waypoint.type === 'jump') {
+          window.scrollTo({ top: waypoint.y, behavior: 'auto' });
+          if (typeof waypoint.projectProgress === 'number') {
+            window.dispatchEvent(new CustomEvent('projects:navigation-progress', {
+              detail: { progress: waypoint.projectProgress }
+            }));
+          }
+          requestAnimationFrame(runNext);
+          return;
+        }
+
+        animateScrollTo(waypoint.y, token, runNext);
+      };
+
+      runNext();
     }
 
     document.addEventListener('click', e => {
@@ -166,16 +274,57 @@ document.documentElement.classList.add('js');
         if (!scrollAnimationFrame) return;
         cancelAnimationFrame(scrollAnimationFrame);
         scrollAnimationFrame = null;
+        scrollNavigationToken += 1;
       }, { passive: true });
     });
 
     /* ---- Scroll reveal ---- */
     const reveals = document.querySelectorAll('.reveal');
+    const revealGroups = new Map();
+    reveals.forEach(el => {
+      const section = el.closest('section');
+      const key = section?.id || 'global';
+      if (!revealGroups.has(key)) revealGroups.set(key, []);
+      revealGroups.get(key).push(el);
+    });
+
+    function getRevealDelay(el) {
+      const section = el.closest('section');
+      const sectionId = section?.id || 'global';
+
+      if (el.classList.contains('skill-card')) {
+        const skillCards = Array.from(document.querySelectorAll('#habilidades .skill-card.reveal'));
+        const index = Math.max(0, skillCards.indexOf(el));
+        return `${0.08 + index * 0.16}s`;
+      }
+
+      if (el.classList.contains('progress-section')) return '0.18s';
+      if (sectionId === 'contato' && el.classList.contains('contato-form')) return '0.45s';
+
+      const group = revealGroups.get(sectionId) || [];
+      const index = Math.max(0, group.indexOf(el));
+      const baseDelay = {
+        sobre: 0.24,
+        projetos: 0.26,
+        habilidades: 0.22,
+        contato: 0.2
+      }[sectionId] || 0.18;
+
+      return `${Math.min(index * baseDelay, 0.9)}s`;
+    }
+
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(e => {
-        e.target.classList.toggle('visible', e.isIntersecting);
+        if (e.isIntersecting) {
+          e.target.style.setProperty('--reveal-delay', getRevealDelay(e.target));
+          e.target.classList.add('visible');
+          return;
+        }
+
+        e.target.style.setProperty('--reveal-delay', '0s');
+        e.target.classList.remove('visible');
       });
-    }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
+    }, { threshold: 0.24, rootMargin: '0px 0px -18% 0px' });
     reveals.forEach(el => observer.observe(el));
 
     /* ---- Entrada sequencial da seção de contato ---- */
@@ -203,11 +352,11 @@ document.documentElement.classList.add('js');
         clearContactTimers();
 
         contactCards.forEach((card, index) => {
-          queueContactAnimation(() => card.classList.add('is-visible'), index * 170);
+          queueContactAnimation(() => card.classList.add('is-visible'), index * 300);
         });
 
         if (contactForm) {
-          queueContactAnimation(() => contactForm.classList.add('is-visible'), 260);
+          queueContactAnimation(() => contactForm.classList.add('is-visible'), 320);
         }
       };
 
@@ -215,11 +364,11 @@ document.documentElement.classList.add('js');
         clearContactTimers();
 
         [...contactCards].reverse().forEach((card, index) => {
-          queueContactAnimation(() => card.classList.remove('is-visible'), index * 70);
+          queueContactAnimation(() => card.classList.remove('is-visible'), index * 120);
         });
 
         if (contactForm) {
-          queueContactAnimation(() => contactForm.classList.remove('is-visible'), 90);
+          queueContactAnimation(() => contactForm.classList.remove('is-visible'), 160);
         }
       };
 
@@ -236,7 +385,7 @@ document.documentElement.classList.add('js');
             resetContactIntro();
           }
         });
-      }, { threshold: 0.28, rootMargin: '0px 0px -18% 0px' });
+      }, { threshold: 0.14, rootMargin: '0px 0px -14% 0px' });
 
       contactObserver.observe(contato);
     }
@@ -253,6 +402,7 @@ document.documentElement.classList.add('js');
       if (!section || !stage || !viewport || !track || cards.length === 0) return;
 
       const desktopQuery = window.matchMedia('(min-width: 901px)');
+      const compactMobileQuery = window.matchMedia('(max-width: 600px)');
       const zigzag = [-22, 24, -18, 20];
       let maxShift = 0;
       let scrollDistance = 0;
@@ -274,6 +424,18 @@ document.documentElement.classList.add('js');
 
       const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
+      function setCompactMobileCards() {
+        cards.forEach((card, index) => {
+          card.style.setProperty('--project-y', `${zigzag[index % zigzag.length] * 0.35}px`);
+          card.style.setProperty('--project-scale', '1');
+          card.style.setProperty('--project-opacity', '1');
+          card.style.setProperty('--project-glow', '0');
+          card.style.setProperty('--project-z', '1');
+          card.classList.remove('is-focused');
+        });
+        focusedIndex = -1;
+      }
+
       function measure() {
         const wasReady = section.classList.contains('projects-scroll-ready');
         section.classList.remove('projects-scroll-ready');
@@ -281,7 +443,7 @@ document.documentElement.classList.add('js');
         track.style.transform = 'translate3d(0px, 0, 0)';
 
         maxShift = Math.max(0, track.scrollWidth - viewport.clientWidth);
-        scrollDistance = Math.max(maxShift * 1.22, window.innerHeight * 0.9);
+        scrollDistance = Math.max(maxShift * 1.35, window.innerHeight * 1.02);
         const navHeight = navbar ? navbar.getBoundingClientRect().height : 0;
         const stickyTop = Math.max(72, Math.round(navHeight + 18));
         viewportWidth = viewport.clientWidth;
@@ -308,6 +470,10 @@ document.documentElement.classList.add('js');
           currentX = 0;
           track.style.transform = 'translate3d(0px, 0, 0)';
           if (wasReady) viewport.scrollTo({ left: 0, behavior: 'auto' });
+          if (compactMobileQuery.matches) {
+            setCompactMobileCards();
+            return;
+          }
           updateCardFocus();
           return;
         }
@@ -319,6 +485,11 @@ document.documentElement.classList.add('js');
       }
 
       function updateCardFocus() {
+        if (compactMobileQuery.matches) {
+          setCompactMobileCards();
+          return;
+        }
+
         const contentX = desktopQuery.matches ? -currentX : viewport.scrollLeft;
         const viewportCenter = contentX + viewportWidth / 2;
         const focusRange = desktopQuery.matches ? focusRangeDesktop : focusRangeMobile;
@@ -374,13 +545,13 @@ document.documentElement.classList.add('js');
         }
 
         const diff = targetProgress - currentProgress;
-        if (Math.abs(diff) < 0.0008) {
+        if (Math.abs(diff) < 0.00045) {
           currentProgress = targetProgress;
           render();
           return;
         }
 
-        currentProgress += diff * 0.14;
+        currentProgress += diff * 0.105;
         render();
         requestRender();
       }
@@ -397,6 +568,14 @@ document.documentElement.classList.add('js');
         if (immediate) currentProgress = targetProgress;
         requestRender();
       }
+
+      window.addEventListener('projects:navigation-progress', event => {
+        if (!desktopQuery.matches || maxShift <= 12) return;
+
+        targetProgress = clamp(Number(event.detail?.progress) || 0, 0, 1);
+        currentProgress = targetProgress;
+        render();
+      });
 
       function syncVerticalToProgress() {
         if (!desktopQuery.matches || maxShift <= 12) return;
@@ -464,10 +643,12 @@ document.documentElement.classList.add('js');
 
       viewport.addEventListener('scroll', () => {
         if (desktopQuery.matches) return;
+        if (compactMobileQuery.matches) return;
         requestRender();
       }, { passive: true });
       window.addEventListener('scroll', () => updateTargetFromScroll(), { passive: true });
       window.addEventListener('resize', measure);
+      compactMobileQuery.addEventListener?.('change', measure);
 
       if (document.fonts?.ready) document.fonts.ready.then(measure);
       measure();
@@ -476,20 +657,111 @@ document.documentElement.classList.add('js');
     initProjectsScroll();
 
     /* ---- Progress bars ---- */
-    const progressBars = document.querySelectorAll('.progress-fill');
     const progressSection = document.querySelector('.progress-section');
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const progressItems = Array.from(document.querySelectorAll('.progress-item')).map(item => {
+      const bar = item.querySelector('.progress-fill');
+      const pct = item.querySelector('.progress-pct');
+      const target = Number(bar?.getAttribute('data-width') || pct?.textContent.replace(/\D/g, '') || 0);
+      return { bar, pct, target, frame: null, timer: null, value: 0 };
+    });
+
+    const easeOutQuart = progress => 1 - Math.pow(1 - progress, 4);
+
+    const setProgressNumber = (item, value) => {
+      if (!item.pct) return;
+      item.pct.textContent = `${Math.round(value)}%`;
+    };
+
+    progressItems.forEach(item => {
+      if (item.bar) item.bar.style.transform = 'scaleX(0)';
+      setProgressNumber(item, 0);
+    });
+
+    const animateProgressNumber = (item, target) => {
+      if (item.frame) cancelAnimationFrame(item.frame);
+
+      const startValue = item.value;
+      const distance = target - startValue;
+      const duration = prefersReducedMotion ? 1150 : 2250;
+      const startTime = performance.now();
+
+      const step = now => {
+        const progress = Math.min((now - startTime) / duration, 1);
+        item.value = startValue + distance * easeOutQuart(progress);
+        setProgressNumber(item, item.value);
+
+        if (progress < 1) {
+          item.frame = requestAnimationFrame(step);
+          return;
+        }
+
+        item.value = target;
+        item.frame = null;
+        setProgressNumber(item, target);
+      };
+
+      item.frame = requestAnimationFrame(step);
+    };
+
+    const resetProgressItem = (item) => {
+      if (item.frame) cancelAnimationFrame(item.frame);
+      item.frame = null;
+      item.value = 0;
+
+      if (item.bar) {
+        const previousTransition = item.bar.style.transition;
+        item.bar.style.transition = 'none';
+        item.bar.style.transform = 'scaleX(0)';
+        void item.bar.offsetWidth;
+
+        if (previousTransition) {
+          item.bar.style.transition = previousTransition;
+        } else {
+          item.bar.style.removeProperty('transition');
+        }
+      }
+
+      setProgressNumber(item, 0);
+    };
+
     const setProgressBars = (active) => {
-      progressBars.forEach(bar => {
-        const width = active ? bar.getAttribute('data-width') : 0;
-        bar.style.width = width + '%';
+      progressItems.forEach(item => {
+        if (item.timer) {
+          clearTimeout(item.timer);
+          item.timer = null;
+        }
+      });
+
+      if (active) {
+        progressItems.forEach(resetProgressItem);
+      }
+
+      progressItems.forEach((item, index) => {
+        const target = active ? item.target : 0;
+        const delay = active
+          ? (prefersReducedMotion ? 180 + index * 60 : 240 + index * 120)
+          : (progressItems.length - 1 - index) * 70;
+
+        item.timer = setTimeout(() => {
+          if (item.bar) {
+            item.bar.style.transform = `scaleX(${target / 100})`;
+          }
+          animateProgressNumber(item, target);
+          item.timer = null;
+        }, delay);
       });
     };
 
+    let progressActive = false;
     const barObserver  = new IntersectionObserver((entries) => {
       entries.forEach(e => {
-        setProgressBars(e.isIntersecting);
+        const nextActive = e.isIntersecting;
+        if (nextActive === progressActive) return;
+        progressActive = nextActive;
+        setProgressBars(nextActive);
       });
-    }, { threshold: 0.22, rootMargin: '0px 0px -12% 0px' });
+    }, { threshold: 0.42, rootMargin: '0px 0px -8% 0px' });
 
     if (progressSection) {
       barObserver.observe(progressSection);

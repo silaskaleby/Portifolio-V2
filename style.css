@@ -334,7 +334,7 @@
       margin-top: 1.25rem;
       margin-bottom: 1.75rem;
       opacity: 1;
-      animation: fadeUp 0.7s forwards 0.2s;
+      animation: fadeUp 1.7s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.35s;
     }
     .hero-tag::before {
       content: '';
@@ -356,7 +356,7 @@
       letter-spacing: -0.04em;
       margin-bottom: 0.5rem;
       opacity: 1;
-      animation: fadeUp 0.8s forwards 0.4s;
+      animation: fadeUp 1.9s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.72s;
     }
     .hero-name span { color: var(--red); }
 
@@ -367,7 +367,7 @@
       font-family: var(--font-mono);
       margin-bottom: 1.5rem;
       opacity: 1;
-      animation: fadeUp 0.8s forwards 0.55s;
+      animation: fadeUp 1.9s cubic-bezier(0.16, 1, 0.3, 1) forwards 1.02s;
     }
     .hero-subtitle strong { color: var(--white); font-weight: 700; }
 
@@ -378,7 +378,7 @@
       line-height: 1.8;
       margin-bottom: 2.5rem;
       opacity: 1;
-      animation: fadeUp 0.8s forwards 0.7s;
+      animation: fadeUp 2s cubic-bezier(0.16, 1, 0.3, 1) forwards 1.32s;
     }
 
     .hero-actions {
@@ -386,7 +386,7 @@
       gap: 1rem;
       flex-wrap: wrap;
       opacity: 1;
-      animation: fadeUp 0.8s forwards 0.85s;
+      animation: fadeUp 2s cubic-bezier(0.16, 1, 0.3, 1) forwards 1.62s;
     }
 
     .btn-primary {
@@ -453,7 +453,7 @@
       align-items: center;
       gap: 8px;
       opacity: 1;
-      animation: fadeIn 1s forwards 1.5s;
+      animation: fadeIn 1.8s cubic-bezier(0.16, 1, 0.3, 1) forwards 2.35s;
     }
     .scroll-hint span {
       font-size: 0.7rem;
@@ -466,7 +466,7 @@
       width: 1px;
       height: 50px;
       background: linear-gradient(to bottom, var(--red), transparent);
-      animation: scrollAnim 1.8s ease-in-out infinite;
+      animation: scrollAnim 2.4s ease-in-out infinite;
     }
     @keyframes scrollAnim {
       0% { transform: scaleY(0); transform-origin: top; }
@@ -522,13 +522,19 @@
     .reveal {
       opacity: 1;
       transform: translateY(0);
-      transition: opacity 0.7s ease, transform 0.7s ease;
+      transition:
+        opacity 1.62s cubic-bezier(0.16, 1, 0.3, 1),
+        transform 1.78s cubic-bezier(0.16, 1, 0.3, 1);
     }
     html.js .reveal {
       opacity: 0;
-      transform: translateY(40px);
+      transform: translateY(78px);
     }
-    html.js .reveal.visible { opacity: 1; transform: translateY(0); }
+    html.js .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+      transition-delay: var(--reveal-delay, 0s) !important;
+    }
 
     /* =============================================
        SOBRE
@@ -771,7 +777,7 @@
     .projeto-card.is-focused::after { opacity: 0.74; }
     html.js #projetos.projects-scroll-ready .projeto-card {
       transition:
-        opacity 0.18s linear,
+        opacity 0.42s linear,
         border-color var(--transition),
         background var(--transition),
         box-shadow var(--transition);
@@ -985,6 +991,14 @@
       overflow: hidden;
       transition: var(--transition);
     }
+    html.js #habilidades .skill-card.reveal {
+      transition:
+        opacity 1.08s cubic-bezier(0.16, 1, 0.3, 1),
+        transform 1.18s cubic-bezier(0.16, 1, 0.3, 1),
+        border-color var(--transition),
+        background var(--transition),
+        box-shadow var(--transition);
+    }
     .skill-card::after {
       content: '';
       position: absolute;
@@ -1068,8 +1082,11 @@
       height: 100%;
       background: var(--red);
       border-radius: 4px;
-      width: 0;
-      transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+      width: 100%;
+      transform: scaleX(0);
+      transform-origin: left center;
+      transition: transform 2.25s cubic-bezier(0.16, 1, 0.3, 1);
+      will-change: transform;
     }
 
     /* =============================================
@@ -1242,19 +1259,19 @@
     }
     html.js #contato .contact-motion {
       opacity: 0;
-      filter: blur(9px);
-      transform: translate3d(-136px, 22px, 0) scale(0.955);
+      filter: blur(7px);
+      transform: translate3d(-168px, 26px, 0) scale(0.945);
       transition:
-        opacity 1.05s cubic-bezier(0.16, 1, 0.3, 1),
-        transform 1.12s cubic-bezier(0.16, 1, 0.3, 1),
-        filter 1.05s cubic-bezier(0.16, 1, 0.3, 1),
+        opacity 1.65s cubic-bezier(0.16, 1, 0.3, 1),
+        transform 1.78s cubic-bezier(0.16, 1, 0.3, 1),
+        filter 1.55s cubic-bezier(0.16, 1, 0.3, 1),
         border-color var(--transition),
         background var(--transition),
         box-shadow var(--transition);
       will-change: opacity, transform, filter;
     }
     html.js #contato .contact-motion-form {
-      transform: translate3d(156px, 24px, 0) scale(0.955);
+      transform: translate3d(190px, 28px, 0) scale(0.945);
     }
     html.js #contato .contact-motion.is-visible {
       opacity: 1;
@@ -1274,7 +1291,7 @@
     @media (max-width: 900px) {
       html.js #contato .contact-motion,
       html.js #contato .contact-motion-form {
-        transform: translate3d(0, 72px, 0) scale(0.965);
+        transform: translate3d(0, 92px, 0) scale(0.96);
       }
       html.js #contato .contact-motion.is-visible {
         transform: translate3d(0, 0, 0) scale(1);
@@ -1282,12 +1299,33 @@
     }
 
     @media (prefers-reduced-motion: reduce) {
+      .hero-tag,
+      .hero-name,
+      .hero-subtitle,
+      .hero-phrase,
+      .hero-actions,
+      .scroll-hint {
+        animation-duration: 0.45s;
+        animation-delay: 0s;
+      }
+      .scroll-line {
+        animation-duration: 3s;
+      }
+      html.js .reveal {
+        transform: translateY(24px);
+        transition:
+          opacity 0.5s ease,
+          transform 0.5s ease;
+      }
+      .progress-fill {
+        transition-duration: 0.9s;
+      }
       html.js #contato .contact-motion {
         filter: none;
         transform: translate3d(-58px, 10px, 0);
         transition:
-          opacity 0.58s ease,
-          transform 0.58s ease,
+          opacity 0.72s ease,
+          transform 0.72s ease,
           border-color var(--transition),
           background var(--transition),
           box-shadow var(--transition);
@@ -1350,7 +1388,7 @@
        ANIMAÇÕES GLOBAIS
     ============================================= */
     @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(28px); }
+       from { opacity: 0; transform: translateY(46px); }
       to   { opacity: 1; transform: translateY(0); }
     }
     @keyframes fadeIn {
