@@ -109,6 +109,15 @@ document.documentElement.classList.add('js');
     /* ---- Rolagem suave para links internos ---- */
     let scrollAnimationFrame = null;
     let scrollNavigationToken = 0;
+    let isAnchorNavigating = false;
+
+    function setAnchorNavigationMode(active) {
+      if (isAnchorNavigating === active) return;
+      isAnchorNavigating = active;
+      window.dispatchEvent(new CustomEvent('projects:navigation-mode', {
+        detail: { active }
+      }));
+    }
 
     function getProjectsScrollRange() {
       const section = document.getElementById('projetos');
@@ -125,67 +134,24 @@ document.documentElement.classList.add('js');
       return { start, end };
     }
 
-    function getAnchorWaypoints(startY, targetY) {
-      const range = getProjectsScrollRange();
-      if (!range) return [{ type: 'smooth', y: targetY }];
-
-      const buffer = 2;
-      const beforeProjects = range.start - buffer;
-      const afterProjects = range.end + buffer;
-      const insideProjects = startY > range.start && startY < range.end;
-      const crossesDown = startY < range.start && targetY > range.end;
-      const crossesUp = startY > range.end && targetY < range.start;
-      const exitsDown = insideProjects && targetY > range.end;
-      const exitsUp = insideProjects && targetY < range.start;
-
-      if (crossesDown) {
-        return [
-          { type: 'smooth', y: beforeProjects },
-          { type: 'jump', y: afterProjects, projectProgress: 1 },
-          { type: 'smooth', y: targetY }
-        ];
-      }
-
-      if (crossesUp) {
-        return [
-          { type: 'smooth', y: afterProjects },
-          { type: 'jump', y: beforeProjects, projectProgress: 0 },
-          { type: 'smooth', y: targetY }
-        ];
-      }
-
-      if (exitsDown) {
-        return [
-          { type: 'jump', y: afterProjects, projectProgress: 1 },
-          { type: 'smooth', y: targetY }
-        ];
-      }
-
-      if (exitsUp) {
-        return [
-          { type: 'jump', y: beforeProjects, projectProgress: 0 },
-          { type: 'smooth', y: targetY }
-        ];
-      }
-
-      return [{ type: 'smooth', y: targetY }];
-    }
-
     const easeInOutCubic = progress => progress < 0.5
       ? 4 * progress * progress * progress
       : 1 - Math.pow(-2 * progress + 2, 3) / 2;
 
-    function animateScrollTo(targetY, token, onComplete) {
+    function animateScrollTo(targetY, token, onComplete, options = {}) {
       const startY = window.scrollY;
       const distance = targetY - startY;
 
       if (Math.abs(distance) < 2) {
         window.scrollTo(0, targetY);
-        onComplete();
+        onComplete?.();
         return;
       }
 
-      const duration = Math.min(950, Math.max(420, Math.abs(distance) * 0.32));
+      const duration = Math.min(
+        options.maxDuration || 1200,
+        Math.max(options.minDuration || 650, Math.abs(distance) * (options.speedFactor || 0.42))
+      );
       const startTime = performance.now();
 
       const step = now => {
@@ -224,36 +190,24 @@ document.documentElement.classList.add('js');
         return;
       }
 
-      const waypoints = getAnchorWaypoints(startY, targetY);
-      let index = 0;
+      setAnchorNavigationMode(true);
+      window.dispatchEvent(new CustomEvent('projects:navigation-progress', {
+        detail: { progress: 0 }
+      }));
 
-      const runNext = () => {
-        if (token !== scrollNavigationToken) return;
-
-        const waypoint = waypoints[index];
-        index += 1;
-
-        if (!waypoint) {
-          scrollAnimationFrame = null;
-          if (updateHistory) history.pushState(null, '', `#${target.id}`);
-          return;
+      const completeNavigation = () => {
+        scrollAnimationFrame = null;
+        const range = getProjectsScrollRange();
+        if (range && window.scrollY > range.end) {
+          window.dispatchEvent(new CustomEvent('projects:navigation-progress', {
+            detail: { progress: 1 }
+          }));
         }
-
-        if (waypoint.type === 'jump') {
-          window.scrollTo({ top: waypoint.y, behavior: 'auto' });
-          if (typeof waypoint.projectProgress === 'number') {
-            window.dispatchEvent(new CustomEvent('projects:navigation-progress', {
-              detail: { progress: waypoint.projectProgress }
-            }));
-          }
-          requestAnimationFrame(runNext);
-          return;
-        }
-
-        animateScrollTo(waypoint.y, token, runNext);
+        setAnchorNavigationMode(false);
+        if (updateHistory) history.pushState(null, '', `#${target.id}`);
       };
 
-      runNext();
+      animateScrollTo(targetY, token, completeNavigation);
     }
 
     document.addEventListener('click', e => {
@@ -275,11 +229,13 @@ document.documentElement.classList.add('js');
         cancelAnimationFrame(scrollAnimationFrame);
         scrollAnimationFrame = null;
         scrollNavigationToken += 1;
+        setAnchorNavigationMode(false);
       }, { passive: true });
     });
 
     /* ---- Scroll reveal ---- */
     const reveals = document.querySelectorAll('.reveal');
+    const responsiveMotionQuery = window.matchMedia('(max-width: 900px)');
     const revealGroups = new Map();
     reveals.forEach(el => {
       const section = el.closest('section');
@@ -295,22 +251,26 @@ document.documentElement.classList.add('js');
       if (el.classList.contains('skill-card')) {
         const skillCards = Array.from(document.querySelectorAll('#habilidades .skill-card.reveal'));
         const index = Math.max(0, skillCards.indexOf(el));
-        return `${0.08 + index * 0.16}s`;
+        return responsiveMotionQuery.matches
+          ? `${0.04 + index * 0.09}s`
+          : `${0.08 + index * 0.16}s`;
       }
 
-      if (el.classList.contains('progress-section')) return '0.18s';
-      if (sectionId === 'contato' && el.classList.contains('contato-form')) return '0.45s';
+      if (el.classList.contains('progress-section')) return responsiveMotionQuery.matches ? '0.08s' : '0.18s';
+      if (sectionId === 'contato' && el.classList.contains('contato-form')) {
+        return responsiveMotionQuery.matches ? '0.28s' : '0.45s';
+      }
 
       const group = revealGroups.get(sectionId) || [];
       const index = Math.max(0, group.indexOf(el));
       const baseDelay = {
-        sobre: 0.24,
-        projetos: 0.26,
-        habilidades: 0.22,
-        contato: 0.2
+        sobre: responsiveMotionQuery.matches ? 0.12 : 0.24,
+        projetos: responsiveMotionQuery.matches ? 0.13 : 0.26,
+        habilidades: responsiveMotionQuery.matches ? 0.11 : 0.22,
+        contato: responsiveMotionQuery.matches ? 0.12 : 0.2
       }[sectionId] || 0.18;
 
-      return `${Math.min(index * baseDelay, 0.9)}s`;
+      return `${Math.min(index * baseDelay, responsiveMotionQuery.matches ? 0.45 : 0.9)}s`;
     }
 
     const observer = new IntersectionObserver((entries) => {
@@ -324,7 +284,9 @@ document.documentElement.classList.add('js');
         e.target.style.setProperty('--reveal-delay', '0s');
         e.target.classList.remove('visible');
       });
-    }, { threshold: 0.24, rootMargin: '0px 0px -18% 0px' });
+    }, responsiveMotionQuery.matches
+      ? { threshold: 0.1, rootMargin: '0px 0px -6% 0px' }
+      : { threshold: 0.24, rootMargin: '0px 0px -18% 0px' });
     reveals.forEach(el => observer.observe(el));
 
     /* ---- Entrada sequencial da seção de contato ---- */
@@ -350,25 +312,29 @@ document.documentElement.classList.add('js');
 
       const playContactIntro = () => {
         clearContactTimers();
+        const cardDelay = responsiveMotionQuery.matches ? 180 : 300;
+        const formDelay = responsiveMotionQuery.matches ? 240 : 320;
 
         contactCards.forEach((card, index) => {
-          queueContactAnimation(() => card.classList.add('is-visible'), index * 300);
+          queueContactAnimation(() => card.classList.add('is-visible'), index * cardDelay);
         });
 
         if (contactForm) {
-          queueContactAnimation(() => contactForm.classList.add('is-visible'), 320);
+          queueContactAnimation(() => contactForm.classList.add('is-visible'), formDelay);
         }
       };
 
       const resetContactIntro = () => {
         clearContactTimers();
+        const resetDelay = responsiveMotionQuery.matches ? 80 : 120;
+        const formResetDelay = responsiveMotionQuery.matches ? 110 : 160;
 
         [...contactCards].reverse().forEach((card, index) => {
-          queueContactAnimation(() => card.classList.remove('is-visible'), index * 120);
+          queueContactAnimation(() => card.classList.remove('is-visible'), index * resetDelay);
         });
 
         if (contactForm) {
-          queueContactAnimation(() => contactForm.classList.remove('is-visible'), 160);
+          queueContactAnimation(() => contactForm.classList.remove('is-visible'), formResetDelay);
         }
       };
 
@@ -421,6 +387,7 @@ document.documentElement.classList.add('js');
       let focusRangeMobile = 0;
       let focusedIndex = -1;
       let cardMetrics = [];
+      let navigationBypass = false;
 
       const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
@@ -562,12 +529,27 @@ document.documentElement.classList.add('js');
       }
 
       function updateTargetFromScroll(immediate = false) {
-        if (!desktopQuery.matches || maxShift <= 12 || isDragging) return;
+        if (!desktopQuery.matches || maxShift <= 12 || isDragging || navigationBypass) return;
 
         targetProgress = clamp((window.scrollY - stageStart) / scrollDistance, 0, 1);
         if (immediate) currentProgress = targetProgress;
         requestRender();
       }
+
+      window.addEventListener('projects:navigation-mode', event => {
+        navigationBypass = Boolean(event.detail?.active);
+        section.classList.toggle('projects-navigation-bypass', navigationBypass);
+
+        if (navigationBypass) {
+          if (rafId) {
+            cancelAnimationFrame(rafId);
+            rafId = null;
+          }
+          return;
+        }
+
+        updateTargetFromScroll(true);
+      });
 
       window.addEventListener('projects:navigation-progress', event => {
         if (!desktopQuery.matches || maxShift <= 12) return;
