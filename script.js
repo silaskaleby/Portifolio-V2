@@ -570,6 +570,7 @@ document.documentElement.classList.add('js');
 
       viewport.addEventListener('pointerdown', event => {
         if (!desktopQuery.matches || maxShift <= 12 || event.pointerType !== 'mouse' || event.button !== 0) return;
+        if (event.target.closest('a, button, input, textarea, select, label')) return;
 
         isDragging = true;
         dragStarted = false;
